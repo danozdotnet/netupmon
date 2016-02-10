@@ -127,7 +127,7 @@ StopFAIL () {
 # footer with all userful information
 PrintREPORT () {
   # check if log file exists
-  [[ -f "$LOGFILE" ]] || \
+  [[ -s "$LOGFILE" ]] || \
     { echo "Log file does not exist, either location is wrong or you haven't run in test mode yet."; exit 0; }
   # print the header
   cat <<-HEADER
