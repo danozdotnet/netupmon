@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# Network Uptime Monitor v0.6.2
+# Network Uptime Monitor v0.6.3
 # Copyright 2016 Danoz <danoz@danoz.net>
 
 # User variables, change these to values that suit.
@@ -56,7 +56,7 @@ ShowHELP () {
   cat <<-ENDOFFILE
 
 ###############################################################################
-# Network Uptime Monitor v0.6.2                                               #
+# Network Uptime Monitor v0.6.3                                               #
 # Copyright 2016 Daniel Jones <danoz@danoz.net>                               #
 ###############################################################################
 
@@ -128,7 +128,7 @@ StopFAIL () {
 PrintREPORT () {
   # check if log file exists
   [[ -f "$LOGFILE" ]] || \
-    { echo "Log file does not exist, either location is wrong or you haven't run in test mode yet."; exit 0; }s
+    { echo "Log file does not exist, either location is wrong or you haven't run in test mode yet."; exit 0; }
   # print the header
   cat <<-HEADER
 
