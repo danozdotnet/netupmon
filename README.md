@@ -1,4 +1,4 @@
-# Network Uptime Monitor v0.6
+# Network Uptime Monitor v0.6.1
 ## Copyright 2016 Danoz <danoz@danoz.net>
 
 
