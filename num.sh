@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# Network Uptime Monitor v0.6.1
+# Network Uptime Monitor v0.6.2
 # Copyright 2016 Danoz <danoz@danoz.net>
 
 # User variables, change these to values that suit.
@@ -18,6 +18,8 @@ LOGFAIL="5"
 #PING="/sbin/ping -c1 -t1"
 # Linux style:
 PING="/bin/ping -c1 -W1"
+# Windows ping
+#PING="ping -n 1 -w 100"
 # log file to use
 LOGFILE="./netupmon.log"
 
@@ -31,12 +33,14 @@ function ctrl_c() {
 
 # process options passed on the command line
 GetOPS () {
-  while getopts ":rh" opt; do
+  while getopts ":rhz" opt; do
     case $opt in
       h)
         ShowHELP; exit 0;;
       r)
         PrintREPORT; exit 0;;
+      z)
+        ResetLOG; DoLOOP; exit 0;;
       \?)
         echo "Invalid option: -$OPTARG" >&2 ;;
     esac
@@ -52,14 +56,15 @@ ShowHELP () {
   cat <<-ENDOFFILE
 
 ###############################################################################
-# Network Uptime Monitor v0.6.1                                               #
+# Network Uptime Monitor v0.6.2                                               #
 # Copyright 2016 Daniel Jones <danoz@danoz.net>                               #
 ###############################################################################
 
 Name:
-num.sh [ -h | -r ]
+num.sh [ -h | -p | -r | -z ]
      -h show this help.
      -r run a report totalling the information already collected
+     -z reset the log file, then run the ping test.
 
 Purpose:
  This script is used to gather information about potential upstream
@@ -81,6 +86,12 @@ Example #2: "./num.sh -r"
  output of any outages that were suffered.
 
 ENDOFFILE
+}
+
+# reset the log file.
+ResetLOG () {
+  rm -rf "$LOGFILE"
+  touch "$LOGFILE"
 }
 
 # take input of seconds, convert to readable h:m:s
@@ -129,7 +140,7 @@ HEADER
   MAXLENGTH="0"
   MINLENGTH="0"
   LOGARR=($(cat $LOGFILE))
-  # set end time to be report runtime, unless it's already 
+  # set end time to be report runtime, unless it's already
   # recorded and gets overwritten later.
   ENDTIME="$(date +%s)"
   # iterate over the logfile
@@ -195,7 +206,7 @@ DoPING () {
   for (( I=0; I<"$IPSIZE"; I++ ))
   do
     # ping the IP, if packet received all is good.
-    [[ $($PING "${IP[$I]}" |grep received|awk '{ print $4 }') -eq 0 ]] && F=$((F+1))
+    [[ $($PING "${IP[$I]}" |grep -i received|awk '{ print substr($4,1,1) }') -eq 0 ]] && F=$((F+1))
   done
 
   # if 3 failures detected, return false.
