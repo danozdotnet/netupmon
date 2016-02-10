@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# Network Uptime Monitor v0.6.3
+# Network Uptime Monitor v0.6.4
 # Copyright 2016 Danoz <danoz@danoz.net>
 
 # User variables, change these to values that suit.
@@ -33,12 +33,14 @@ function ctrl_c() {
 
 # process options passed on the command line
 GetOPS () {
-  while getopts ":rhz" opt; do
+  while getopts ":rthz" opt; do
     case $opt in
       h)
         ShowHELP; exit 0;;
       r)
         PrintREPORT; exit 0;;
+      t)
+        DoLOOP; exit 0;;
       z)
         ResetLOG; DoLOOP; exit 0;;
       \?)
@@ -46,23 +48,37 @@ GetOPS () {
     esac
   done
 
-  # if no option passed, run the loop
-  [[ $OPTIND -eq 1 ]] && DoLOOP
+  # if no option passed, show simple usage
+  [[ $OPTIND -eq 1 ]] && ShowUSAGE
   shift $((OPTIND-1))
 }
 
-# show help
+# simple usage when nothing specified
+ShowUSAGE () {
+  cat <<-USAGE
+No flag specified, please use one of the below listed options.
+
+num.sh [ -h | -t | -r | -z ]
+     -h show the help screen
+     -t run the ping test
+     -r run a report totalling the information already collected
+     -z reset the log file, then run the ping test.
+USAGE
+}
+
+# show full help
 ShowHELP () {
   cat <<-ENDOFFILE
 
 ###############################################################################
-# Network Uptime Monitor v0.6.3                                               #
+# Network Uptime Monitor v0.6.4                                               #
 # Copyright 2016 Daniel Jones <danoz@danoz.net>                               #
 ###############################################################################
 
 Name:
-num.sh [ -h | -r | -z ]
-     -h show this help.
+num.sh [ -h | -t | -r | -z ]
+     -h show the help screen
+     -t run the ping test
      -r run a report totalling the information already collected
      -z reset the log file, then run the ping test.
 
@@ -74,8 +90,8 @@ Purpose:
 
 Usage:
 
-Example #1: "./num.sh"
- With no options, the script run in the ping test mode. It will ping the IPs
+Example #1: "./num.sh -t"
+ With this option, the script run in the ping test mode. It will ping the IPs
  you have specifed in the user variable section. It will run continuously. If
  you CTRL+C out of the script, it will finish up cleanly and close out the
  outage log.
@@ -90,7 +106,7 @@ ENDOFFILE
 
 # reset the log file.
 ResetLOG () {
-  rm -rf "$LOGFILE"
+  rm "$LOGFILE"
   touch "$LOGFILE"
 }
 
