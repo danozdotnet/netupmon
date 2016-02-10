@@ -61,7 +61,7 @@ ShowHELP () {
 ###############################################################################
 
 Name:
-num.sh [ -h | -p | -r | -z ]
+num.sh [ -h | -r | -z ]
      -h show this help.
      -r run a report totalling the information already collected
      -z reset the log file, then run the ping test.
