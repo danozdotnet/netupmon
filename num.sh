@@ -126,6 +126,9 @@ StopFAIL () {
 # print the header, then extract/calculate all the info, then print body
 # footer with all userful information
 PrintREPORT () {
+  # check if log file exists
+  [[ -f "$LOGFILE" ]] || \
+    { echo "Log file does not exist, either location is wrong or you haven't run in test mode yet."; exit 0; }s
   # print the header
   cat <<-HEADER
 
