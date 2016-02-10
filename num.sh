@@ -1,10 +1,9 @@
 #!/bin/bash
 #
-# Network Uptime Monitor v0.6
+# Network Uptime Monitor v0.6.1
 # Copyright 2016 Danoz <danoz@danoz.net>
 
-# User variables
-# you can change these to values that suit.
+# User variables, change these to values that suit.
 
 # change these to your preferred DNS Servers/or IP's of interest to ping
 IP=( "8.8.8.8" "4.2.2.2" "208.67.222.222" )
@@ -22,7 +21,6 @@ PING="/bin/ping -c1 -W1"
 # log file to use
 LOGFILE="./netupmon.log"
 
-# functions to use, don't touch the shit below, it's fo' real.
 # catch ctrl-c and break from the loop
 trap ctrl_c INT
 
@@ -49,31 +47,33 @@ GetOPS () {
   shift $((OPTIND-1))
 }
 
-# show help to noobs.
+# show help
 ShowHELP () {
   cat <<-ENDOFFILE
 
-##########################################################################
-# Network Uptime Monitor v0.6
-# Copyright 2016 Danoz <danoz@danoz.net>
-##########################################################################
+###############################################################################
+# Network Uptime Monitor v0.6.1                                                 #
+# Copyright 2016 Danoz <danoz@danoz.net>                                      #
+###############################################################################
 
 Name:
-ylm.sh [ -h | -r ]
+num.sh [ -h | -r ]
      -h show this help.
      -r run a report totalling the information already collected
 
 Purpose:
-  This script is used to gather information about potential upstream
-  internet connectivity issues. It will continuously ping a list of IPs
-  and return the time an outage begins and finishes. Secondly, it will
-  collate a report of any of all outages in a simple to read table.
+ This script is used to gather information about potential upstream
+ internet connectivity issues. It will continuously ping a list of IPs
+ and return the time an outage begins and finishes. Secondly, it will
+ collate a report of any of all outages in a simple to read table.
 
 Usage:
 
 Example #1: "./num.sh"
  With no options, the script run in the ping test mode. It will ping the IPs
- you have specifed in the user variable section. It will run continuously.
+ you have specifed in the user variable section. It will run continuously. If
+ you CTRL+C out of the script, it will finish up cleanly and close out the
+ outage log.
 
 Example #2: "./num.sh -r"
  With option -r, the script will run in report mode. In this mode it will
@@ -112,14 +112,15 @@ StopFAIL () {
   echo "$StartTIME:$OutageTIME" >> "$LOGFILE"
 }
 
-# print the header, then extract/calculate all the info, then bring body
+# print the header, then extract/calculate all the info, then print body
 # footer with all userful information
 PrintREPORT () {
   # print the header
   cat <<-HEADER
-====================================
-Network Uptime Monitor - Failure Log
-====================================
+
+=======================================
+ Network Uptime Monitor - Failure Log
+=======================================
 
 HEADER
   # set some sane/useful values
@@ -128,6 +129,9 @@ HEADER
   MAXLENGTH="0"
   MINLENGTH="0"
   LOGARR=($(cat $LOGFILE))
+  # set end time to be report runtime, unless it's already 
+  # recorded and gets overwritten later.
+  ENDTIME="$(date +%s)"
   # iterate over the logfile
   for row in "${LOGARR[@]}"
   do
@@ -138,11 +142,11 @@ HEADER
     IFS=$OLDIFS
     # check for start/stop of monitoring, otherwise calculate outage times
     [[ "${cols[1]}" == "start" ]] \
-      && printf "%s\tLog Start\n" "$(ConvertDATE "${cols[0]}")"
+      && printf " %s\t   Log Start\n" "$(ConvertDATE "${cols[0]}")"
     [[ "${cols[1]}" =~ ^-?[0-9]+$ ]] \
-      && printf "%s\t%s\n" "$(ConvertDATE "${cols[0]}")" "$(ConvertTIME "${cols[1]}")"
+      && printf " %s\t   %s\n" "$(ConvertDATE "${cols[0]}")" "$(ConvertTIME "${cols[1]}")"
     [[ "${cols[1]}" == "end" ]] \
-      && printf "%s\tLog End\n" "$(ConvertDATE "${cols[0]}")"
+      && printf " %s\t   Log End\n" "$(ConvertDATE "${cols[0]}")"
 
     # extract info for summary.
     [[ "${cols[1]}" == "start" ]] && STARTTIME="${cols[0]}"
@@ -167,18 +171,18 @@ HEADER
 
   cat <<-SUMMARY
 
-Monitor Duration:       $(ConvertTIME $LOGTIME)
+ Monitor Duration:         $(ConvertTIME $LOGTIME)
 
-Failure Summary:
+ Failure Summary:
 
-Number of Outages       $NUMOUTAGES
-Total Downtime          $TOTALDOWNTIME
-Precentage Down         $PERCENTDOWN%
-Minimum Length          $(ConvertTIME "$MAXLENGTH")
-Maximum Length          $(ConvertTIME "$MINLENGTH")
-Average Length          $(ConvertTIME "$AVGLENGTH")
+ Number of Outages         $NUMOUTAGES
+ Total Downtime            $TOTALDOWNTIME
+ Precentage Down           $PERCENTDOWN%
+ Minimum Length            $(ConvertTIME "$MINLENGTH")
+ Maximum Length            $(ConvertTIME "$MAXLENGTH")
+ Average Length            $(ConvertTIME "$AVGLENGTH")
 
-====================================
+=======================================
 
 SUMMARY
 }
@@ -200,8 +204,8 @@ DoPING () {
 
 # loop like a boss
 DoLOOP () {
-  # echo start time to log
-  echo "$(date +%s):start" >> "$LOGFILE"
+  # echo start time to log if log file is empty (or doesn't exist)
+  [[ -s "$LOGFILE" ]] || echo "$(date +%s):start" >> "$LOGFILE"
   while :
    do
     # do the ping test
