@@ -3,7 +3,7 @@
 
 
 ###Name:
-####ylm.sh [ -h | -r ]
+####num.sh [ -h | -r ]
      -h show this help.
      -r run a report totalling the information already collected
 
