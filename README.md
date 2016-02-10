@@ -1,5 +1,5 @@
 # Network Uptime Monitor v0.6.1
-## Copyright 2016 Danoz <danoz@danoz.net>
+## Copyright 2016 Daniel Jones <danoz@danoz.net>
 
 
 ###Name:
