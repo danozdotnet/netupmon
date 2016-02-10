@@ -1,7 +1,7 @@
 #!/bin/bash
  
 #
-# Network Uptime Monitor v0.2
+# Network Uptime Monitor v0.3
 # Copyright 2016 Danoz <danoz@danoz.net>
 #
  
@@ -15,22 +15,78 @@ TESTINT="1"
 # mark as failure after X seconds of outage
 LOGFAIL="5"
 # adjust as necessary for your environment.
-# ubiquiti routers need the path specified, and theirs is under /bin
-#PING="/bin/ping -c1 -t1"
-PING="/sbin/ping -c1 -t1"
+# ubiquiti routers need the path specified:
+#PING="/bin/ping -c1 -t100 -w1"
+# FreeBSD style:
+#PING="/sbin/ping -c1 -t1"
+# Linux style:
+PING="/bin/ping -c1 -W1"
 # log file to use
-LOGFILE="/var/log/you.lazy.motherfucker"
+LOGFILE="/var/log/netupmon.log"
 # time stamp to use
 TIME=$(date +"%Y%m%d %H:%M:%S")
  
-# functions to use, don't touch this shit below, it's fo' real.
+# functions to use, don't touch the shit below, it's fo' real.
 # catch ctrl-c and break from the loop
 trap ctrl_c INT
  
+# break out of the while loop when we catch ctrl-c
 function ctrl_c() {
-        break;
+  break;
 }
  
+GetOPS () {
+  while getopts ":rh" opt; do
+    case $opt in
+      h)
+        ShowHELP; exit 0;;
+      r)
+        RunREPORT; exit 0;;
+      \?)
+        echo "Invalid option: -$OPTARG" >&2 ;;
+    esac
+  done
+ 
+  [[ $OPTIND -eq 1 ]] && DoLOOP
+  shift $((OPTIND-1))
+}
+ 
+ShowHELP () {
+  cat <<-ENDOFFILE
+##########################################################################
+# Network Uptime Monitor v0.3
+# Copyright 2016 Danoz <danoz@danoz.net>
+##########################################################################
+ 
+Name:
+ylm.sh [ -h | -r ]
+     -h show this help.
+     -r run a report totalling the information already collected
+ 
+Purpose:
+ This script is used to gather information about potential upstream internet 
+ connectivity issues. It will continuously ping a list of IPs and return the 
+ time an outage begins and finishes. Secondly, it will collate a report of any 
+ of all outages in a simple to read table.
+ 
+Usage:
+ 
+Example #1: "./num.sh"
+ With no options, the script run in the ping test mode. It will ping the IP's
+ you've specifed in the user variable section. It will run continuously.
+ 
+Example #2: "./num.sh -r"
+ With option -r, the script will run in report mode. In this mode it will
+ tally the information collected in the previous mode and give a quantified
+ output of any outages that were suffered.
+ENDOFFILE
+}
+ 
+RunREPORT () {
+  # TODO
+  # look at the log file, make pretty tables and shit.
+  return 0
+}
 # do our ping tests.
 DoPING () {
   F=0; IPSIZE="${#IP[@]}"
@@ -43,10 +99,10 @@ DoPING () {
   done
  
   # if 3 failures detected, return false.
-  [[ "$F" -eq "$IPSIZE" ]] && return 1 || return 0
+  [[ "$F" -eq "$IPSIZE" ]] && echo 1 || echo 0
 }
  
-# loop like a boss
+  # loop like a boss
 DoLOOP () {
   while :
    do
@@ -67,6 +123,6 @@ DoLOOP () {
   done
 }
  
-DoLOOP
+GetOPS "$@"
 # exit like a boss
 exit 0
