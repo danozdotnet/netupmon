@@ -1,7 +1,9 @@
 #!/bin/bash
 #
 # Network Uptime Monitor v0.6.4
-# Copyright 2016 Danoz <danoz@danoz.net>
+# Copyright 2016 Danoz <danoz@danoz.net> 
+# All Rights Reserved
+# Released under the MIT License.
 
 # User variables, change these to values that suit.
 
