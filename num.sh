@@ -253,7 +253,7 @@ DoLOOP () {
     [[ "$X" -eq "$LOGFAIL" ]] && StartFAIL "$STARTFAIL"
 
     # looks like the outage is over, we'd better stop recording it as such (and reset $x)
-    [[ "$X" -gt "$LOGFAIL" && "$TEST" -eq "0" ]] && { StopFAIL "$(date +%s)"; X=0; STARFAIL=""; }
+    [[ "$X" -gt "$LOGFAIL" && "$TEST" -eq "0" ]] && { StopFAIL "$(date +%s)"; X=0; STARTFAIL=""; }
 
     # sleep appropriate time and start again.
     sleep "$TESTINT"
