@@ -1,7 +1,7 @@
 #!/bin/bash
 #
-# Network Uptime Monitor v0.6.4
-# Copyright 2016 Danoz <danoz@danoz.net> 
+# Network Uptime Monitor v0.6.5
+# Copyright 2016 Daniel Jones
 # All Rights Reserved
 # Released under the MIT License.
 
@@ -73,8 +73,8 @@ ShowHELP () {
   cat <<-ENDOFFILE
 
 ###############################################################################
-# Network Uptime Monitor v0.6.4                                               #
-# Copyright 2016 Daniel Jones <danoz@danoz.net>                               #
+# Network Uptime Monitor v0.6.5                                               #
+# Copyright 2016 Daniel Jones                                                 #
 ###############################################################################
 
 Name:
@@ -246,11 +246,14 @@ DoLOOP () {
     # if all 3 failed, we need to record that shit.
     [[ "$TEST" -eq "1" ]] && X=$((X+1))
 
+    # once we have a failure, remember the time it started so we can use that later.
+    [[ "$X" -eq "1" ]] && STARTFAIL=$(date +%s)
+
     # well looks like we're having an outage, lets record more stuff
-    [[ "$X" -eq "$LOGFAIL" ]] && StartFAIL "$(date +%s)"
+    [[ "$X" -eq "$LOGFAIL" ]] && StartFAIL "$STARTFAIL"
 
     # looks like the outage is over, we'd better stop recording it as such (and reset $x)
-    [[ "$X" -gt "$LOGFAIL" && "$TEST" -eq "0" ]] && { StopFAIL "$(date +%s)"; X=0; }
+    [[ "$X" -gt "$LOGFAIL" && "$TEST" -eq "0" ]] && { StopFAIL "$(date +%s)"; X=0; STARFAIL=""; }
 
     # sleep appropriate time and start again.
     sleep "$TESTINT"
