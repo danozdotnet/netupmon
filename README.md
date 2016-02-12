@@ -1,4 +1,4 @@
-# Network Uptime Monitor v0.6.4
+# Network Uptime Monitor v0.6.5
 ## Copyright 2016 Daniel Jones, All Rights Reserved.
 ## Released under the MIT License.
 
