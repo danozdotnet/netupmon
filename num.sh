@@ -1,28 +1,23 @@
 #!/bin/bash
 #
-# Network Uptime Monitor v0.6.5
+# Network Uptime Monitor v0.7.0
 # Copyright 2016 Daniel Jones
 # All Rights Reserved
 # Released under the MIT License.
 
 # User variables, change these to values that suit.
 
-# change these to your preferred DNS Servers/or IP's of interest to ping
+# change these to your preferred DNS Servers/or IP's of interest 
+# to ping (add as many as you want!)
 IP=( "8.8.8.8" "4.2.2.2" "208.67.222.222" )
 # set test interval to every X seconds
 TESTINT="1"
 # mark as failure after X intervals in a row of outage
 LOGFAIL="5"
-# adjust as necessary for your environment.
-# ubiquiti routers need the path specified:
-#PING="/bin/ping -c1 -t100 -w1"
-# FreeBSD style:
-#PING="/sbin/ping -c1 -t1"
-# Linux style:
-PING="/bin/ping -c1 -W1"
-# Windows ping
-#PING="ping -n 1 -w 100"
-# log file to use
+# set ping timeout value (in milliseconds). if fping is not installed (on linux/bsd)
+# then timeout cannot be smaller than 1 second (and will be set as such).
+TIMEOUT="200"
+# log file to store times of outages
 LOGFILE="./netupmon.log"
 
 # catch ctrl-c and break from the loop
@@ -33,8 +28,33 @@ function ctrl_c() {
   break;
 }
 
+# detect OS and set OS specific variables.
+DetectOS () {
+  # check for fping
+  FPING=$(type fping2 >/dev/null 2>&1)
+  [[ "$FPING" ]] || TIMEOUT="1"
+
+  case "$OSTYPE" in
+    msys*)
+      OS="win32"; PING="ping -n 1 -w $TIMEOUT";;
+    freebsd*)
+      OS="bsd"; 
+      [[ "$FPING" ]] && PING="fping -c 1 -t $TIMEOUT -u -q" || PING="ping -c1 -t1";; 
+    linux*)
+      OS="linux"; 
+      # if linux system is a ubiquiti, path to ping required (and ttl helps)
+      [[ $(uname -r | grep -c UBNT) -eq "1" ]] && PING="/bin/ping -c1 -t100 -W1" || PING="ping -c1 -W1";
+      [[ "$FPING" ]] && PING="fping -c 1 -t $TIMEOUT -u -q";;
+    *)
+      echo "unknown OS, exiting."; exit 0;;
+  esac
+}
+
 # process options passed on the command line
 GetOPS () {
+  # check OS first, then continue if good
+  DetectOS
+
   while getopts ":rthz" opt; do
     case $opt in
       h)
@@ -73,7 +93,7 @@ ShowHELP () {
   cat <<-ENDOFFILE
 
 ###############################################################################
-# Network Uptime Monitor v0.6.5                                               #
+# Network Uptime Monitor v0.7.0                                               #
 # Copyright 2016 Daniel Jones                                                 #
 ###############################################################################
 
@@ -122,9 +142,9 @@ ConvertTIME () {
 
 # convert unix timestamp to readable date
 ConvertDATE () {
-  printf "%s" "$(date -d @"$1" +"%d/%m/%Y %H:%M:%S")"
+  [[ "$OS" == "linux" ]] && printf "%s" "$(date -d @"$1" +"%d/%m/%Y %H:%M:%S")"
   # for freebsd:
-  #printf "%s" "$(date -r "$1" +"%d/%m/%Y %H:%M:%S")"
+  [[ "$OS" == "bsd" ]] && printf "%s" "$(date -r "$1" +"%d/%m/%Y %H:%M:%S")"
 }
 
 # record the time the failure started
@@ -226,6 +246,9 @@ DoPING () {
   # loop through all the IP's in our array and test them
   for (( I=0; I<"$IPSIZE"; I++ ))
   do
+    [[ "$FPING" ]] && \
+    # fping specific check:
+    [[ $($PING "${IP[$I]}" 2>&1 | grep -c Unreachable) -eq 1 ]] && F=$((F+1)) || \
     # ping the IP, if packet received all is good.
     [[ $($PING "${IP[$I]}" |grep -i received|awk '{ print substr($4,1,1) }') -eq 0 ]] && F=$((F+1))
   done
@@ -253,7 +276,7 @@ DoLOOP () {
     [[ "$X" -eq "$LOGFAIL" ]] && StartFAIL "$STARTFAIL"
 
     # looks like the outage is over, we'd better stop recording it as such (and reset $x)
-    [[ "$X" -gt "$LOGFAIL" && "$TEST" -eq "0" ]] && { StopFAIL "$(date +%s)"; X=0; STARTFAIL=""; }
+    [[ "$X" -gt "0" && "$TEST" -eq "0" ]] && { StopFAIL "$(date +%s)"; X=0; STARTFAIL=""; }
 
     # sleep appropriate time and start again.
     sleep "$TESTINT"
