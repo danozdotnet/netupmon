@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# Network Uptime Monitor v0.7.1
+# Network Uptime Monitor v0.7.2
 # Copyright 2016 Daniel Jones
 # All Rights Reserved
 # Released under the MIT License.
@@ -39,6 +39,9 @@ DetectOS () {
       OS="win32"; PING="ping -n 1 -w $TIMEOUT";;
     freebsd*)
       OS="bsd"; 
+      [[ "$FPING" ]] && PING="fping -c 1 -t $TIMEOUT -u -q" || PING="ping -c1 -t1";; 
+    darwin*)
+      OS="darwin";
       [[ "$FPING" ]] && PING="fping -c 1 -t $TIMEOUT -u -q" || PING="ping -c1 -t1";; 
     linux*)
       OS="linux"; 
@@ -93,7 +96,7 @@ ShowHELP () {
   cat <<-ENDOFFILE
 
 ###############################################################################
-# Network Uptime Monitor v0.7.1                                               #
+# Network Uptime Monitor v0.7.2                                               #
 # Copyright 2016 Daniel Jones                                                 #
 ###############################################################################
 
@@ -143,8 +146,8 @@ ConvertTIME () {
 # convert unix timestamp to readable date
 ConvertDATE () {
   [[ "$OS" == "linux" ]] && printf "%s" "$(date -d @"$1" +"%d/%m/%Y %H:%M:%S")"
-  # for freebsd:
-  [[ "$OS" == "bsd" ]] && printf "%s" "$(date -r "$1" +"%d/%m/%Y %H:%M:%S")"
+  # for freebsd and darwin (osx)
+  [[ "$OS" == "bsd" || "$OS" == "darwin" ]] && printf "%s" "$(date -r "$1" +"%d/%m/%Y %H:%M:%S")"
 }
 
 # record the time the failure started
