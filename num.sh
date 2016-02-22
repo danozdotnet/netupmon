@@ -31,7 +31,7 @@ function ctrl_c() {
 # detect OS and set OS specific variables.
 DetectOS () {
   # check for fping
-  FPING=$(type fping2 >/dev/null 2>&1)
+  FPING=$(type fping 2>/dev/null 2>&1)
   [[ "$FPING" ]] || TIMEOUT="1"
 
   case "$OSTYPE" in
@@ -39,15 +39,15 @@ DetectOS () {
       OS="win32"; PING="ping -n 1 -w $TIMEOUT";;
     freebsd*)
       OS="bsd"; 
-      [[ "$FPING" ]] && PING="fping -c 1 -t $TIMEOUT -u -q" || PING="ping -c1 -t1";; 
+      [[ "$FPING" ]] && PING="fping -c 1 -t $TIMEOUT -u" || PING="ping -c1 -t1";; 
     darwin*)
       OS="darwin";
-      [[ "$FPING" ]] && PING="fping -c 1 -t $TIMEOUT -u -q" || PING="ping -c1 -t1";; 
+      [[ "$FPING" ]] && PING="fping -c 1 -t $TIMEOUT -u" || PING="ping -c1 -t1";; 
     linux*)
       OS="linux"; 
       # if linux system is a ubiquiti, path to ping required (and ttl helps)
       [[ $(uname -r | grep -c UBNT) -eq "1" ]] && PING="/bin/ping -c1 -t100 -W1" || PING="ping -c1 -W1";
-      [[ "$FPING" ]] && PING="fping -c 1 -t $TIMEOUT -u -q";;
+      [[ "$FPING" ]] && PING="fping -c 1 -t $TIMEOUT -u";;
     *)
       echo "unknown OS, exiting."; exit 0;;
   esac
@@ -251,9 +251,9 @@ DoPING () {
   do
     [[ "$FPING" ]] && \
     # fping specific check:
-    [[ $($PING "${IP[$I]}" 2>&1 | grep -c Unreachable) -eq 1 ]] && F=$((F+1)) || \
+    [[ $($PING "${IP[$I]}" 2>&1|grep -c Unreachable) -eq 1 ]] && F=$((F+1)) || \
     # ping the IP, if packet received all is good.
-    [[ $($PING "${IP[$I]}" |grep -i received|awk '{ print substr($4,1,1) }') -eq 0 ]] && F=$((F+1))
+    [[ $($PING "${IP[$I]}" 2>&1|grep -i received|awk '{ print substr($4,1,1) }') -eq 0 ]] && F=$((F+1))
   done
 
   # if 3 failures detected, return false.
