@@ -30,6 +30,8 @@ function ctrl_c() {
 
 # detect OS and set OS specific variables.
 DetectOS () {
+  # turn off case sensitivity, because of reasons
+  shopt -s nocasematch
   # check for fping
   FPING=$(type fping 2>/dev/null 2>&1)
   [[ "$FPING" ]] || TIMEOUT="1"
@@ -37,7 +39,7 @@ DetectOS () {
   case "$OSTYPE" in
     msys*)
       OS="win32"; PING="ping -n 1 -w $TIMEOUT";;
-    FreeBSD*)
+    freebsd*)
       OS="bsd"; 
       [[ "$FPING" ]] && PING="fping -c 1 -t $TIMEOUT -u" || PING="ping -c1 -t1";; 
     darwin*)
