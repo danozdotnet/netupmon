@@ -37,7 +37,7 @@ DetectOS () {
   case "$OSTYPE" in
     msys*)
       OS="win32"; PING="ping -n 1 -w $TIMEOUT";;
-    freebsd*)
+    FreeBSD*)
       OS="bsd"; 
       [[ "$FPING" ]] && PING="fping -c 1 -t $TIMEOUT -u" || PING="ping -c1 -t1";; 
     darwin*)
