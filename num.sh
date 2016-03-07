@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# Network Uptime Monitor v0.7.2
+# Network Uptime Monitor v0.7.3
 # Copyright 2016 Daniel Jones
 # All Rights Reserved
 # Released under the MIT License.
@@ -98,7 +98,7 @@ ShowHELP () {
   cat <<-ENDOFFILE
 
 ###############################################################################
-# Network Uptime Monitor v0.7.2                                               #
+# Network Uptime Monitor v0.7.3                                               #
 # Copyright 2016 Daniel Jones                                                 #
 ###############################################################################
 
@@ -133,7 +133,7 @@ ENDOFFILE
 
 # reset the log file.
 ResetLOG () {
-  rm "$LOGFILE"
+  [[ -f "$LOGFILE" ]] && rm "$LOGFILE"
   touch "$LOGFILE"
 }
 
